@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Signup - UOK Library</title>
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="stylesheet" href="css/login.css" />
+  </head>
+  <body>
+    <section class="auth-section">
+      <div class="card">
+        <h2>Sign Up</h2>
+        <form id="signupForm">
+          <label for="username">Full Name</label>
+          <input type="text" id="username" required placeholder="Enter your full name" />
+
+          <label for="reg_number">Registration Number</label>
+          <input type="text" id="reg_number" required placeholder="e.g. CS/001/2024" />
+
+          <label for="email">Email</label>
+          <input type="email" id="email" required placeholder="Enter your email" />
+
+          <label for="password">Password</label>
+          <input type="password" id="password" required placeholder="Enter password" />
+
+          <div id="signup-alert"></div>
+
+          <button type="submit" class="btn">Sign Up</button>
+        </form>
+        <p>Already have an account? <a href="login.html">Login</a></p>
+      </div>
+    </section>
+    <script src="js/signup.js"></script>
+  </body>
+</html>

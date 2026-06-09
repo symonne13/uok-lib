@@ -1,0 +1,18 @@
+body {
+  background-color: var(--white);
+  color: var(--text-dark);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+}
+
+h1 {
+  font-size: 3rem;
+  color: var(--light-blue);
+}
+
+button {
+  margin-top: 20px;
+}

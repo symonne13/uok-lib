@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — UOK Library</title>
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="../index.html" class="navbar-brand">
+    <div class="logo-icon">📚</div>
+    <span>UOK Library</span>
+  </a>
+  <div class="navbar-nav" style="gap:16px;">
+    <span style="background:rgba(212,168,83,0.2); color:var(--accent); padding:4px 10px; border-radius:50px; font-size:0.75rem; font-weight:700; letter-spacing:1px;">ADMIN</span>
+    <button class="nav-btn" onclick="logout()">Sign Out</button>
+  </div>
+</nav>
+
+<div class="dashboard">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Dashboard</div>
+      <button class="sidebar-item active" onclick="showPage('overview')" id="nav-overview">
+        <span class="icon">📊</span> Overview
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Manage</div>
+      <button class="sidebar-item" onclick="showPage('reservations')" id="nav-reservations">
+        <span class="icon">📋</span> Reservations
+      </button>
+      <button class="sidebar-item" onclick="showPage('seats')" id="nav-seats">
+        <span class="icon">🪑</span> Seats
+      </button>
+      <button class="sidebar-item" onclick="showPage('users')" id="nav-users">
+        <span class="icon">👥</span> Students
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Reports</div>
+      <button class="sidebar-item" onclick="showPage('logs')" id="nav-logs">
+        <span class="icon">📝</span> Activity Logs
+      </button>
+      <button class="sidebar-item" onclick="showPage('feedback')" id="nav-feedback">
+        <span class="icon">💬</span> Feedback
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Tools</div>
+      <button class="sidebar-item" onclick="runExpiry()">
+        <span class="icon">⏰</span> Run Expiry Check
+      </button>
+      <button class="sidebar-item" onclick="logout()" style="color:#fca5a5;">
+        <span class="icon">🚪</span> Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+    <!-- === OVERVIEW === -->
+    <div id="page-overview">
+      <div class="page-header">
+        <h2>Library Overview</h2>
+        <p id="overview-date" style="color:var(--text-muted);"></p>
+      </div>
+
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-icon green">🪑</div><div><div class="stat-value" id="stat-available">—</div><div class="stat-label">Seats Available</div></div></div>
+        <div class="stat-card"><div class="stat-icon red">🔴</div><div><div class="stat-value" id="stat-occupied">—</div><div class="stat-label">Seats Occupied</div></div></div>
+        <div class="stat-card"><div class="stat-icon amber">📌</div><div><div class="stat-value" id="stat-reserved">—</div><div class="stat-label">Seats Reserved</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">👥</div><div><div class="stat-value" id="stat-users">—</div><div class="stat-label">Total Students</div></div></div>
+        <div class="stat-card"><div class="stat-icon amber">📋</div><div><div class="stat-value" id="stat-active">—</div><div class="stat-label">Active Reservations</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">📅</div><div><div class="stat-value" id="stat-today">—</div><div class="stat-label">Today's Bookings</div></div></div>
+      </div>
+
+      <!-- Live seat map -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Live Seat Map</h3>
+          <button class="btn btn-sm btn-green" onclick="loadOverview()">↻ Refresh</button>
+        </div>
+        <div class="card-body">
+          <div class="seat-legend" style="margin-bottom:16px;">
+            <div class="legend-item"><div class="legend-dot" style="background:#d1fae5; border:1px solid #6ee7b7;"></div> Available</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#fef3c7; border:1px solid #fde68a;"></div> Reserved</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#fee2e2; border:1px solid #fca5a5;"></div> Occupied</div>
+          </div>
+          <div id="admin-seat-grid" class="seat-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === RESERVATIONS === -->
+    <div id="page-reservations" class="hidden">
+      <div class="page-header" style="display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <h2>All Reservations</h2>
+          <p>View and manage all student bookings</p>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <select id="res-filter" class="form-control" style="width:auto;" onchange="loadReservations()">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="expired">Expired</option>
+          </select>
+          <button class="btn btn-green btn-sm" onclick="loadReservations()">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Reg No.</th>
+                  <th>Seat</th>
+                  <th>Section</th>
+                  <th>Start</th>
+                  <th>End</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="reservations-tbody">
+                <tr><td colspan="8" class="text-center text-muted" style="padding:40px;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === SEATS === -->
+    <div id="page-seats" class="hidden">
+      <div class="page-header">
+        <h2>Seat Management</h2>
+        <p>View and update individual seat statuses</p>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>Seat No.</th><th>Section</th><th>QR Code</th><th>Status</th><th>Action</th></tr>
+              </thead>
+              <tbody id="seats-tbody">
+                <tr><td colspan="5" class="text-center text-muted" style="padding:40px;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === STUDENTS === -->
+    <div id="page-users" class="hidden">
+      <div class="page-header">
+        <h2>Registered Students</h2>
+        <p>All student accounts in the system</p>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div style="margin-bottom:16px;">
+            <input type="text" id="user-search" class="form-control" placeholder="Search by name or reg number..." style="max-width:360px;" oninput="filterUsers()">
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>Name</th><th>Reg No.</th><th>Email</th><th>Role</th><th>Joined</th></tr>
+              </thead>
+              <tbody id="users-tbody">
+                <tr><td colspan="5" class="text-center text-muted" style="padding:40px;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === LOGS === -->
+    <div id="page-logs" class="hidden">
+      <div class="page-header" style="display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <h2>Activity Logs</h2>
+          <p>All system events and user actions</p>
+        </div>
+        <button class="btn btn-green btn-sm" onclick="loadLogs()">↻ Refresh</button>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>Time</th><th>Student</th><th>Reg No.</th><th>Action</th><th>Details</th></tr>
+              </thead>
+              <tbody id="logs-tbody">
+                <tr><td colspan="5" class="text-center text-muted" style="padding:40px;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === FEEDBACK === -->
+    <div id="page-feedback" class="hidden">
+      <div class="page-header">
+        <h2>Student Feedback</h2>
+        <p>Reviews and suggestions from students</p>
+      </div>
+      <div id="feedback-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap:20px;"></div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="../js/admin-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Dashboard — UOK Library</title>
+  <link rel="stylesheet" href="../css/common.css">
+  <!-- html5-qrcode for QR scanning -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="../index.html" class="navbar-brand">
+    <div class="logo-icon">📚</div>
+    <span>UOK Library</span>
+  </a>
+  <div class="navbar-nav" style="gap:16px;">
+    <span id="nav-username" style="color:rgba(255,255,255,0.75); font-size:0.9rem;"></span>
+    <button class="nav-btn" onclick="logout()">Sign Out</button>
+  </div>
+</nav>
+
+<div class="dashboard">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Menu</div>
+      <button class="sidebar-item active" onclick="showPage('reserve')" id="nav-reserve">
+        <span class="icon">🪑</span> Reserve a Seat
+      </button>
+      <button class="sidebar-item" onclick="showPage('checkin')" id="nav-checkin">
+        <span class="icon">📱</span> QR Check-In
+      </button>
+      <button class="sidebar-item" onclick="showPage('my-bookings')" id="nav-my-bookings">
+        <span class="icon">📋</span> My Bookings
+      </button>
+      <button class="sidebar-item" onclick="showPage('feedback')" id="nav-feedback">
+        <span class="icon">💬</span> Feedback
+      </button>
+    </div>
+    <div class="sidebar-section" style="margin-top: auto; padding-top: 32px;">
+      <div class="sidebar-label">Account</div>
+      <button class="sidebar-item" onclick="showPage('profile')" id="nav-profile">
+        <span class="icon">👤</span> My Profile
+      </button>
+      <button class="sidebar-item" onclick="logout()" style="color: #fca5a5;">
+        <span class="icon">🚪</span> Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- === RESERVE A SEAT === -->
+    <div id="page-reserve">
+      <div class="page-header">
+        <h2>Reserve a Seat</h2>
+        <p>Select your desired time slot to see available seats</p>
+      </div>
+
+      <!-- Active reservation banner -->
+      <div id="active-reservation-banner" class="hidden alert alert-info" style="margin-bottom:24px; border-radius: var(--radius);">
+        <span>📌</span>
+        <div>
+          <strong>You have an active reservation:</strong>
+          <span id="active-res-details"></span>
+          <button class="btn btn-danger btn-sm" style="margin-left:16px;" onclick="checkoutActive()">Check Out Early</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-body">
+          <div class="form-row" style="align-items: flex-end; gap: 20px;">
+            <div class="form-group" style="margin:0;">
+              <label>Start Time</label>
+              <input type="datetime-local" id="start_time" class="form-control">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label>End Time <small style="color:var(--text-muted); text-transform:none;">(max 3 hours)</small></label>
+              <input type="datetime-local" id="end_time" class="form-control">
+            </div>
+            <button class="btn btn-primary" onclick="loadAvailableSeats()">Check Seats</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="seats-section" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3>Available Seats</h3>
+            <div class="seat-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:#d1fae5; border:1px solid #6ee7b7;"></div> Available</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#fef3c7; border:1px solid #fde68a;"></div> Reserved</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#fee2e2; border:1px solid #fca5a5;"></div> Occupied</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <!-- Section tabs -->
+            <div id="section-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;"></div>
+            <div id="seat-grid" class="seat-grid"></div>
+            <div id="selected-seat-info" class="hidden" style="margin-top:20px; padding:16px; background:var(--surface-3); border-radius:var(--radius-sm);">
+              <p>Selected: <strong id="selected-seat-label"></strong></p>
+              <button class="btn btn-primary" style="margin-top:12px;" onclick="confirmReservation()">Confirm Reservation</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === QR CHECK-IN === -->
+    <div id="page-checkin" class="hidden">
+      <div class="page-header">
+        <h2>QR Code Check-In</h2>
+        <p>Scan the QR code on your reserved seat to confirm your presence</p>
+      </div>
+      <div class="card" style="max-width: 480px;">
+        <div class="card-body">
+          <div id="qr-reader"></div>
+          <div id="qr-result" class="hidden qr-result alert" style="margin-top:16px;"></div>
+          <div style="margin-top: 20px; text-align: center;">
+            <button id="start-scan-btn" class="btn btn-green" onclick="startScanner()">📷 Start Camera Scanner</button>
+            <button id="stop-scan-btn" class="btn btn-danger hidden" onclick="stopScanner()">Stop Scanner</button>
+          </div>
+          <hr style="border:none; border-top:1px solid var(--border); margin:20px 0;">
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">Or enter QR code manually:</p>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="manual-qr" class="form-control" placeholder="e.g. QR-S01-UOK2024">
+            <button class="btn btn-primary" onclick="manualCheckin()">Check In</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === MY BOOKINGS === -->
+    <div id="page-my-bookings" class="hidden">
+      <div class="page-header">
+        <h2>My Bookings</h2>
+        <p>All your past and upcoming reservations</p>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Seat</th>
+                  <th>Section</th>
+                  <th>Start</th>
+                  <th>End</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="bookings-tbody">
+                <tr><td colspan="6" class="text-center text-muted" style="padding:40px;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === FEEDBACK === -->
+    <div id="page-feedback" class="hidden">
+      <div class="page-header">
+        <h2>Submit Feedback</h2>
+        <p>Help us improve the library experience</p>
+      </div>
+      <div class="card" style="max-width: 560px;">
+        <div class="card-body">
+          <div id="feedback-alert"></div>
+          <div class="form-group">
+            <label>Rating</label>
+            <div id="star-rating" style="display:flex; gap:8px; font-size:1.8rem; cursor:pointer; margin-bottom:4px;">
+              <span class="star" data-val="1">☆</span>
+              <span class="star" data-val="2">☆</span>
+              <span class="star" data-val="3">☆</span>
+              <span class="star" data-val="4">☆</span>
+              <span class="star" data-val="5">☆</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Your Message</label>
+            <textarea id="feedback-msg" class="form-control" rows="5" placeholder="Tell us about your experience..."></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="submitFeedback()">Submit Feedback</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- === PROFILE === -->
+    <div id="page-profile" class="hidden">
+      <div class="page-header">
+        <h2>My Profile</h2>
+        <p>View and update your account details</p>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; max-width:800px;">
+        <div class="card">
+          <div class="card-header"><h3>Profile Details</h3></div>
+          <div class="card-body">
+            <div id="profile-alert"></div>
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="profile-name" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="profile-email" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Registration Number</label>
+              <input type="text" id="profile-reg" class="form-control" disabled>
+            </div>
+            <button class="btn btn-primary" onclick="updateProfile()">Save Changes</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Change Password</h3></div>
+          <div class="card-body">
+            <div id="pw-alert"></div>
+            <div class="form-group">
+              <label>Current Password</label>
+              <input type="password" id="current-pw" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>New Password</label>
+              <input type="password" id="new-pw" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Confirm New Password</label>
+              <input type="password" id="confirm-pw" class="form-control">
+            </div>
+            <button class="btn btn-green" onclick="changePassword()">Update Password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Confirm Modal -->
+<div id="confirm-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Confirm Reservation</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info">
+        <span>📌</span>
+        <div id="modal-details"></div>
+      </div>
+      <p style="margin-top:12px; font-size:0.9rem; color:var(--text-muted);">
+        You must scan the seat's QR code within 15 minutes of your start time to activate the reservation.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" style="color:var(--text); border-color:var(--border);" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="doReserve()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/user-dashboard.js"></script>
+</body>
+</html>

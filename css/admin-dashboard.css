@@ -1,0 +1,24 @@
+body {
+  background-color: var(--light-blue);
+  color: var(--text-dark);
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--white);
+}
+
+table th,
+table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+table tr:hover {
+  background-color: #f1f1f1;
+}
